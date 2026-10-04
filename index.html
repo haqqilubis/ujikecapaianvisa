@@ -132,30 +132,31 @@ ul{margin:0;padding-left:18px;font-size:13px;line-height:1.65}
 
 <script>
 // ===== KONFIGURASI =====
+// Penambahan tags (index ke-2) pada semua opsi untuk memudahkan filter logika risiko
 const FACTORS=[
  {id:'status',label:'Status pekerjaan / aktivitas',short:'Status',opts:[
   ['ASN / BUMN / Lembaga Negara',15,'job'],['Karyawan swasta',12,'job'],['Wirausaha / pemilik usaha',11,'job'],
   ['Pensiunan',11,'job'],['Mahasiswa / pelajar',8,'student'],['Ibu rumah tangga',8,'ird'],
-  ['Freelancer (ada bukti pajak/kontrak)',7,'job'],['Tidak bekerja / tanpa kontrak',0,'none']]},
+  ['Freelancer (ada bukti pajak/kontrak)',7,'freelance'],['Tidak bekerja / tanpa kontrak',0,'none']]},
  {id:'sponsor',label:'Siapa yang menanggung biaya?',short:'Penanggung biaya',opts:[
   ['Diri sendiri',10,'self'],['Orang tua / pasangan',8,'family'],['Beasiswa / institusi',10,'inst'],
   ['Perusahaan / kantor',10,'inst'],['Belum jelas',0,'none']]},
  {id:'income',label:'Penghasilan bulanan penanggung biaya',short:'Penghasilan',opts:[
-  ['> Rp 20 juta',15],['Rp 10 – 20 juta',11],['Rp 5 – 10 juta',7],['< Rp 5 juta',3],['Tidak ada penghasilan tetap',0]]},
+  ['> Rp 20 juta',15,'ok'],['Rp 10 – 20 juta',11,'ok'],['Rp 5 – 10 juta',7,'low'],['< Rp 5 juta',3,'poor'],['Tidak ada penghasilan tetap',0,'none']]},
  {id:'saldo',label:'Saldo rekening / dana tersedia',short:'Saldo',opts:[
-  ['> Rp 100 juta',15],['Rp 50 – 100 juta',11],['Rp 10 – 50 juta',6],['< Rp 10 juta',0]]},
+  ['> Rp 100 juta',15,'ok'],['Rp 50 – 100 juta',11,'ok'],['Rp 10 – 50 juta',6,'low'],['< Rp 10 juta',0,'poor']]},
  {id:'stabil',label:'Kestabilan mutasi rekening 3–6 bulan',short:'Mutasi rekening',opts:[
-  ['Stabil, ada pemasukan rutin',10,'ok'],['Cukup bervariasi',5,'ok'],['Ada lonjakan mendadak',0,'spike']],
+  ['Stabil, ada pemasukan rutin',10,'ok'],['Cukup bervariasi',5,'warn'],['Ada lonjakan mendadak',0,'spike']],
   hint:'Konsuler menilai konsistensi mutasi, bukan hanya saldo akhir.'},
  {id:'ikatan',label:'Ikatan dengan Indonesia',short:'Ikatan Indonesia',opts:[
-  ['Kuat: keluarga inti & properti / kerja > 2 tahun',15],['Sedang: salah satu dari itu',9],['Lemah / belum ada',3]]},
+  ['Kuat: keluarga inti & properti / kerja > 2 tahun',15,'strong'],['Sedang: salah satu dari itu',9,'mid'],['Lemah / belum ada',3,'weak']]},
  {id:'travel',label:'Riwayat perjalanan luar negeri',short:'Riwayat perjalanan',opts:[
-  ['Pernah ke negara bervisa (Eropa, AS, UK, Australia, Jepang, Korea, dll)',10],
-  ['Hanya ke negara bebas visa (Malaysia, Singapura, dll)',5],['Belum pernah ke luar negeri',0]]},
+  ['Pernah ke negara bervisa (Eropa, AS, UK, Australia, Jepang, Korea, dll)',10,'pro'],
+  ['Hanya ke negara bebas visa (Malaysia, Singapura, dll)',5,'basic'],['Belum pernah ke luar negeri',0,'none']]},
  {id:'tolak',label:'Riwayat penolakan visa',short:'Penolakan visa',opts:[
   ['Tidak pernah ditolak / belum pernah apply',10,'none'],['Pernah ditolak 1 kali',4,'once'],['Pernah ditolak lebih dari 1 kali',0,'multi']]}
 ];
-const DEST={ // x,y = posisi di peta (viewBox 360x180)
+const DEST={
  jepang:{l:'Jepang',e:'🇯🇵',x:319.7,y:54.3,high:68,mid:50},
  korea:{l:'Korea Selatan',e:'🇰🇷',x:307,y:52.5,high:68,mid:50},
  china:{l:'China',e:'🇨🇳',x:296,y:50,high:65,mid:48},
@@ -206,26 +207,61 @@ f.addEventListener('change',e=>{
  res.classList.add('hidden');
 });
 
-// ===== HITUNG =====
+// ===== HITUNG (LOGIKA BARU) =====
 f.addEventListener('submit',e=>{
  e.preventDefault();
  const key=f.dest.value,d=DEST[key];
  const pick={},pts={};let total=0;
+ 
  FACTORS.forEach(x=>{const o=x.opts[+$(x.id).value];pick[x.id]=o;pts[x.id]=o[1];total+=o[1]});
  const score=Math.round(total/MAXSCORE*100);
  let level=score>=d.high?'high':score>=d.mid?'mid':'low';
 
+ // === PERBAIKAN LOGIKA RED FLAGS ===
  const flags=[];
- if(pick.tolak[2]==='multi')flags.push('Pernah ditolak lebih dari 1 kali.');
- if(pick.status[2]==='none'&&pick.sponsor[2]==='none')flags.push('Tidak ada pekerjaan maupun penanggung biaya yang jelas.');
- else if(pick.sponsor[2]==='none')flags.push('Penanggung biaya belum jelas.');
- if(pick.stabil[2]==='spike')flags.push('Ada lonjakan saldo mendadak pada mutasi rekening.');
- const capped=level==='high'&&flags.length>0;
- if(capped)level='mid';
+ let isFatal = false; // Jika fatal, level WAJIB 'low' berapapun skornya
 
- const L={high:['Profil Tergolong Kuat',`Profil Anda tergolong kuat untuk pengajuan ke <b>${d.l}</b>. Tetap siapkan dokumen selengkapnya; keputusan akhir ada pada konsuler.`],
+ if(pick.tolak[2]==='multi'){
+   flags.push('Pernah ditolak lebih dari 1 kali (Risiko penolakan tinggi).');
+   isFatal = true;
+ }
+ if(pick.sponsor[2]==='none'){
+   flags.push('Penanggung biaya belum jelas (Syarat mutlak pengajuan visa).');
+   isFatal = true;
+ }
+ // Kontradiksi Pekerjaan & Sponsor Mandiri
+ if(pick.status[2]==='none' && pick.sponsor[2]==='self'){
+   flags.push('Tidak bekerja namun membiayai perjalanan secara mandiri (Sangat dicurigai konsuler).');
+   isFatal = true;
+ }
+ // Finansial tidak mencukupi untuk menanggung diri sendiri
+ if(pick.sponsor[2]==='self' && (pick.income[2]==='poor' || pick.income[2]==='none' || pick.saldo[2]==='poor')){
+   flags.push('Dana/Penghasilan dinilai belum cukup untuk menanggung perjalanan secara mandiri.');
+   isFatal = true;
+ }
+ // Risiko overstay (Ikatan lemah & Tidak punya kerja/bisnis stabil)
+ if(pick.ikatan[2]==='weak' && (pick.status[2]==='none' || pick.status[2]==='freelance')){
+   flags.push('Ikatan dengan negara asal lemah (Kekhawatiran konsuler akan risiko overstay/kerja ilegal).');
+ }
+ // Lonjakan mutasi mencurigakan
+ if(pick.stabil[2]==='spike'){
+   flags.push('Ada lonjakan saldo mendadak (Sering dianggap "dana pinjaman sementara" oleh konsuler).');
+ }
+
+ // Capping logic (penalti skor)
+ let capped = false;
+ if(isFatal){
+   if(level !== 'low') { level = 'low'; capped = true; }
+ } else if(flags.length > 0) {
+   if(level === 'high') { level = 'mid'; capped = true; }
+ }
+ // ==================================
+
+ const L={
+  high:['Profil Tergolong Kuat',`Profil Anda tergolong kuat untuk pengajuan ke <b>${d.l}</b>. Tetap siapkan dokumen selengkapnya; keputusan akhir ada pada konsuler.`],
   mid:['Cukup, Perlu Penguatan',`Profil Anda cukup untuk pengajuan ke <b>${d.l}</b>, namun konsuler bisa meminta dokumen tambahan. Perkuat faktor terlemah di bawah.`],
-  low:['Risiko Penolakan Tinggi',`Profil saat ini berisiko tinggi untuk <b>${d.l}</b>. Sebaiknya perkuat faktor terlemah sebelum mengajukan.`]}[level];
+  low:['Risiko Penolakan Tinggi',`Profil saat ini berisiko tinggi untuk <b>${d.l}</b>. Sangat disarankan untuk memperkuat faktor terlemah atau menunda pengajuan.`]
+ }[level];
  const color={high:'#22a35a',mid:'#d49a12',low:'#e0483a'}[level];
  const student=pick.status[2]==='student';
  const weak=FACTORS.map(x=>({x,r:pts[x.id]/max(x.opts)})).sort((a,b)=>a.r-b.r).filter(w=>w.r<.6).slice(0,3);
@@ -239,11 +275,11 @@ f.addEventListener('submit',e=>{
   <div><span class="badge ${level}">${L[0]}</span>
    <div class="hint" style="margin-top:8px">Ambang ${d.l}: kuat ≥ ${d.high}, cukup ≥ ${d.mid}</div></div>
  </div>
- <p class="desc">${L[1]}${capped?`<br><br><b>Catatan:</b> status dibatasi ke “Cukup” karena ada tanda risiko, walau skor sudah mencapai ambang tertinggi (${d.high}).`:''}${student?'<br><br>Sebagai pelajar, sponsor orang tua/wali dan surat dari kampus sangat membantu.':''}</p>
- ${flags.length?`<h3 class="flag">Tanda risiko</h3><ul class="flag">${flags.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
+ <p class="desc">${L[1]}${capped?`<br><br><b>Catatan:</b> Estimasi diturunkan akibat adanya <b>Tanda Risiko</b> signifikan, meskipun akumulasi poin Anda mencukupi.`:''}${student?'<br><br>Sebagai pelajar, sponsor orang tua/wali dan lampiran surat keterangan aktif dari kampus sangat krusial.':''}</p>
+ ${flags.length?`<h3 class="flag">Tanda risiko yang harus diwaspadai</h3><ul class="flag">${flags.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
  <h3>Rincian poin per faktor</h3>
  ${FACTORS.map(x=>{const m=max(x.opts),p=pts[x.id],r=p/m,c=r>=.7?'#22a35a':r>=.4?'#d49a12':'#e0483a';
-  return `<div class="row"><span>${x.short}</span><div class="track"><div class="fill" style="width:${r*100}%;background:${c}"></div></div><em>${p}/${m}</em></div>`}).join('')}
+  return `<div class="row"><span>${x.short}</span><div class="track"><div class="fill" style="width:${r*100}\%;background:${c}"></div></div><em>${p}/${m}</em></div>`}).join('')}
  <h3>${weak.length?'Yang perlu diperkuat':'Semua faktor cukup baik'}</h3>
  ${weak.length?`<ul>${weak.map(w=>`<li><b>${w.x.short}:</b> ${TIPS[w.x.id]}</li>`).join('')}</ul>`:'<p class="desc">Tidak ada faktor yang tergolong lemah. Pastikan dokumen lengkap dan konsisten.</p>'}
  <p class="disc">Ini estimasi mandiri berdasarkan jawaban Anda, bukan penilaian resmi kedutaan atau jaminan hasil. Keputusan sepenuhnya di tangan konsuler dan kebijakan tiap negara dapat berubah. Cek persyaratan resmi di situs kedutaan tujuan.</p>
