@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Estimasi Kekuatan Profil Visa</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);
+--bg:#f6f1e7;--card:#fffdf8;--tx:#1b2438;--mu:#6b7385;--bd:#e3dac6;--in:#faf6ec;--gold:#b8863b;--navy:#0c1a33;
+--gb:#dcf3e3;--gt:#17603a;--yb:#fbefc7;--yt:#7a5410;--rb:#fbdcd8;--rt:#9a2a20;--bar:#e9e1cf}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#070d1b;--card:#101a2f;--tx:#e8e6df;--mu:#8e98ae;--bd:#233252;--in:#0b1424;--gold:#d9a85a;--gb:#12452b;--gt:#b8f0cc;--yb:#46350d;--yt:#f6df9b;--rb:#4a1a16;--rt:#fbc9c3;--bar:#1f2d4a}}
+:root[data-theme="dark"]{--bg:#070d1b;--card:#101a2f;--tx:#e8e6df;--mu:#8e98ae;--bd:#233252;--in:#0b1424;--gold:#d9a85a;--gb:#12452b;--gt:#b8f0cc;--yb:#46350d;--yt:#f6df9b;--rb:#4a1a16;--rt:#fbc9c3;--bar:#1f2d4a}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:Inter,system-ui,sans-serif}
+.wrap{display:grid;grid-template-columns:1fr;min-height:100vh}
+/* ===== Panel peta ===== */
+.hero{background:radial-gradient(120% 90% at 20% 0%,#1b3a6b 0%,var(--navy) 60%);color:#fff;padding:26px 20px 18px;position:relative;overflow:hidden}
+.eyebrow{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:#e2bd7a;font-weight:600}
+.hero h1{font-family:Fraunces,Georgia,serif;font-size:32px;line-height:1.1;margin:8px 0 6px}
+.hero p{margin:0;font-size:13px;color:#b9c4dc;max-width:420px;line-height:1.5}
+.map{margin:14px -6px 0}
+.map svg{width:100%;height:auto;display:block}
+.legend{display:flex;gap:14px;font-size:11px;color:#9fb0d0;margin-top:2px}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:5px;vertical-align:-1px}
+.arc{stroke-dasharray:4 3;animation:flow 1.2s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-14}}
+.pulse{transform-box:fill-box;transform-origin:center;animation:pulse 1.8s ease-out infinite}
+@keyframes pulse{0%{transform:scale(1);opacity:.7}100%{transform:scale(3.2);opacity:0}}
+.pin{cursor:pointer}
+/* ===== Panel form ===== */
+.main{padding:22px 16px 40px;max-width:680px;width:100%;margin:0 auto}
+.step{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin:0 0 10px}
+.chips{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:22px}
+.chip input{position:absolute;opacity:0;pointer-events:none}
+.chip span{display:flex;align-items:center;gap:8px;padding:10px 12px;border:1.5px solid var(--bd);border-radius:12px;background:var(--card);font-size:13px;font-weight:500;cursor:pointer;transition:.18s;min-height:46px}
+.chip b{font-size:20px;font-weight:400;line-height:1}
+.chip input:checked+span{border-color:var(--gold);background:var(--in);box-shadow:0 0 0 3px #b8863b30;font-weight:600}
+.chip input:focus-visible+span{outline:2px solid var(--gold)}
+.grid{display:grid;grid-template-columns:1fr;gap:14px}
+label.l{display:block;font-size:12.5px;font-weight:600;margin-bottom:5px}
+select{width:100%;padding:12px;border-radius:12px;border:1.5px solid var(--bd);background:var(--card);color:var(--tx);font:inherit;font-size:14px}
+select:focus{outline:2px solid var(--gold);border-color:var(--gold)}
+.hint{font-size:11px;color:var(--mu);margin-top:4px;line-height:1.4}
+.go{margin-top:22px;width:100%;padding:15px;border:0;border-radius:14px;background:linear-gradient(90deg,#b8863b,#d9a85a);color:#1b1305;font:700 15px Inter,sans-serif;cursor:pointer;box-shadow:0 8px 20px #b8863b40}
+.go:active{transform:scale(.99)}
+/* ===== Hasil ===== */
+#res{margin-top:30px;padding-top:26px;border-top:1.5px dashed var(--bd);animation:up .5s ease}
+@keyframes up{from{opacity:0;transform:translateY(12px)}}
+.hidden{display:none}
+.ringbox{display:flex;align-items:center;gap:18px;flex-wrap:wrap}
+.ring{position:relative;width:128px;height:128px;flex:none}
+.ring svg{transform:rotate(-90deg)}
+.ring .n{position:absolute;inset:0;display:grid;place-content:center;text-align:center}
+.ring b{font-family:Fraunces,serif;font-size:38px;line-height:1}.ring small{font-size:10px;color:var(--mu)}
+.badge{display:inline-block;padding:7px 14px;border-radius:99px;font-weight:700;font-size:13px}
+.high{background:var(--gb);color:var(--gt)}.mid{background:var(--yb);color:var(--yt)}.low{background:var(--rb);color:var(--rt)}
+.desc{font-size:13px;line-height:1.65;background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:13px;margin:16px 0}
+h3{font-size:12px;letter-spacing:.12em;text-transform:uppercase;margin:20px 0 8px;color:var(--mu)}
+.row{display:grid;grid-template-columns:120px 1fr 42px;gap:10px;align-items:center;font-size:12px;margin:7px 0}
+.track{height:8px;background:var(--bar);border-radius:9px;overflow:hidden}.fill{height:100%;border-radius:9px}
+.row em{font-style:normal;text-align:right;color:var(--mu)}
+ul{margin:0;padding-left:18px;font-size:13px;line-height:1.65}
+.flag{color:var(--rt)}
+.disc{font-size:11px;color:var(--mu);line-height:1.55;margin-top:20px}
+.reset{display:block;margin:16px auto 0;background:none;border:0;color:var(--mu);font:600 13px Inter,sans-serif;cursor:pointer;text-decoration:underline}
+/* ===== Desktop ===== */
+@media(min-width:900px){
+ .wrap{grid-template-columns:minmax(420px,46%) 1fr}
+ .hero{position:sticky;top:0;height:100vh;padding:48px 40px;display:flex;flex-direction:column;justify-content:center}
+ .hero h1{font-size:46px}.hero p{font-size:14.5px}
+ .map{margin:28px -10px 0}
+ .main{padding:56px 48px 80px;margin:0}
+ .chips{grid-template-columns:repeat(2,1fr)}
+ .grid{grid-template-columns:1fr 1fr}.grid .full{grid-column:1/-1}
+ .row{grid-template-columns:150px 1fr 48px}
+}
+@media(min-width:1280px){.chips{grid-template-columns:repeat(4,1fr)}.hero{padding:56px 56px}}
+@media(prefers-reduced-motion:reduce){.arc,.pulse,#res{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+ <aside class="hero">
+  <div class="eyebrow">Passport · Profile Check</div>
+  <h1>Seberapa kuat profil visa Anda?</h1>
+  <p>Jawab 8 pertanyaan singkat dan lihat estimasi kekuatan profil menuju negara impian Anda.</p>
+  <div class="map">
+   <svg viewBox="0 0 360 180" role="img" aria-label="Peta dunia dengan rute dari Indonesia ke negara tujuan">
+    <defs>
+     <pattern id="dots" width="3.2" height="3.2" patternUnits="userSpaceOnUse"><circle cx="1.6" cy="1.6" r=".95" fill="#6f87b3"/></pattern>
+     <pattern id="gold" width="3.2" height="3.2" patternUnits="userSpaceOnUse"><circle cx="1.6" cy="1.6" r=".95" fill="#e2bd7a"/></pattern>
+    </defs>
+    <g stroke="#ffffff14" stroke-width=".4" fill="none">
+     <path d="M0 45H360M0 90H360M0 135H360M60 0V180M120 0V180M180 0V180M240 0V180M300 0V180"/>
+    </g>
+    <g fill="url(#dots)">
+     <polygon points="12,24 40,20 85,18 120,30 125,42 100,65 83,72 97,81 75,68 62,58 55,42 45,32 15,30"/>
+     <polygon points="108,12 160,8 158,20 135,30 122,20"/>
+     <polygon points="100,81 120,80 145,96 140,112 122,128 112,145 106,135 108,108 99,95"/>
+     <polygon points="170,54 171,47 180,40 190,32 205,20 260,14 320,18 360,24 340,32 322,44 302,60 290,70 285,80 283,89 278,82 272,68 260,78 252,70 238,66 230,60 215,60 208,54 195,52 183,50"/>
+     <polygon points="163,69 174,54 190,53 212,59 223,78 231,78 220,95 220,105 213,117 200,125 192,108 189,86 172,86 163,76"/>
+     <polygon points="294,112 310,102 322,101 333,116 327,128 315,124 295,124"/>
+     <polygon points="310,60 318,52 325,46 323,50 316,58"/>
+     <polygon points="289,89 297,83 299,91 294,94"/>
+    </g>
+    <g fill="url(#gold)"><polygon points="275,83 279,86 287,95 284,97 274,87"/><polygon points="286,96 294,97 294,99 286,98"/></g>
+    <path id="arc" class="arc" fill="none" stroke="#e2bd7a" stroke-width="1.2" stroke-linecap="round" d=""/>
+    <g id="pins"></g>
+    <g>
+     <circle class="pulse" cx="278.7" cy="86.4" r="2.2" fill="#e2bd7a"/>
+     <circle cx="278.7" cy="86.4" r="2.4" fill="#e2bd7a" stroke="#0c1a33" stroke-width=".8"/>
+    </g>
+    <text id="lab" font-size="7.5" font-weight="600" fill="#fff" text-anchor="middle" style="paint-order:stroke;stroke:#0c1a33;stroke-width:2px"></text>
+   </svg>
+  </div>
+  <div class="legend"><span><i style="background:#e2bd7a"></i>Asal: Indonesia</span><span><i style="background:#fff"></i>Tujuan terpilih</span></div>
+ </aside>
+
+ <main class="main">
+  <form id="f">
+   <p class="step">1 · Pilih negara tujuan</p>
+   <div class="chips" id="chips"></div>
+   <p class="step">2 · Ceritakan profil Anda</p>
+   <div class="grid" id="grid"></div>
+   <button class="go" type="submit">Hitung Estimasi Profil</button>
+  </form>
+  <div id="res" class="hidden" aria-live="polite"></div>
+ </main>
+</div>
+
+<script>
+// ===== KONFIGURASI =====
+const FACTORS=[
+ {id:'status',label:'Status pekerjaan / aktivitas',short:'Status',opts:[
+  ['ASN / BUMN / Lembaga Negara',15,'job'],['Karyawan swasta',12,'job'],['Wirausaha / pemilik usaha',11,'job'],
+  ['Pensiunan',11,'job'],['Mahasiswa / pelajar',8,'student'],['Ibu rumah tangga',8,'ird'],
+  ['Freelancer (ada bukti pajak/kontrak)',7,'job'],['Tidak bekerja / tanpa kontrak',0,'none']]},
+ {id:'sponsor',label:'Siapa yang menanggung biaya?',short:'Penanggung biaya',opts:[
+  ['Diri sendiri',10,'self'],['Orang tua / pasangan',8,'family'],['Beasiswa / institusi',10,'inst'],
+  ['Perusahaan / kantor',10,'inst'],['Belum jelas',0,'none']]},
+ {id:'income',label:'Penghasilan bulanan penanggung biaya',short:'Penghasilan',opts:[
+  ['> Rp 20 juta',15],['Rp 10 – 20 juta',11],['Rp 5 – 10 juta',7],['< Rp 5 juta',3],['Tidak ada penghasilan tetap',0]]},
+ {id:'saldo',label:'Saldo rekening / dana tersedia',short:'Saldo',opts:[
+  ['> Rp 100 juta',15],['Rp 50 – 100 juta',11],['Rp 10 – 50 juta',6],['< Rp 10 juta',0]]},
+ {id:'stabil',label:'Kestabilan mutasi rekening 3–6 bulan',short:'Mutasi rekening',opts:[
+  ['Stabil, ada pemasukan rutin',10,'ok'],['Cukup bervariasi',5,'ok'],['Ada lonjakan mendadak',0,'spike']],
+  hint:'Konsuler menilai konsistensi mutasi, bukan hanya saldo akhir.'},
+ {id:'ikatan',label:'Ikatan dengan Indonesia',short:'Ikatan Indonesia',opts:[
+  ['Kuat: keluarga inti & properti / kerja > 2 tahun',15],['Sedang: salah satu dari itu',9],['Lemah / belum ada',3]]},
+ {id:'travel',label:'Riwayat perjalanan luar negeri',short:'Riwayat perjalanan',opts:[
+  ['Pernah ke negara bervisa (Eropa, AS, UK, Australia, Jepang, Korea, dll)',10],
+  ['Hanya ke negara bebas visa (Malaysia, Singapura, dll)',5],['Belum pernah ke luar negeri',0]]},
+ {id:'tolak',label:'Riwayat penolakan visa',short:'Penolakan visa',opts:[
+  ['Tidak pernah ditolak / belum pernah apply',10,'none'],['Pernah ditolak 1 kali',4,'once'],['Pernah ditolak lebih dari 1 kali',0,'multi']]}
+];
+const DEST={ // x,y = posisi di peta (viewBox 360x180)
+ jepang:{l:'Jepang',e:'🇯🇵',x:319.7,y:54.3,high:68,mid:50},
+ korea:{l:'Korea Selatan',e:'🇰🇷',x:307,y:52.5,high:68,mid:50},
+ china:{l:'China',e:'🇨🇳',x:296,y:50,high:65,mid:48},
+ teluk:{l:'UAE / Qatar / Saudi',e:'🇦🇪',x:235,y:65,high:65,mid:45},
+ aunz:{l:'Australia / NZ',e:'🇦🇺',x:331,y:124,high:75,mid:55},
+ schengen:{l:'Eropa (Schengen)',e:'🇪🇺',x:190,y:42,high:78,mid:58},
+ uk:{l:'Inggris (UK)',e:'🇬🇧',x:180,y:38.5,high:78,mid:58},
+ usca:{l:'Amerika / Kanada',e:'🇺🇸',x:82,y:51,high:80,mid:60}
+};
+const OX=278.7,OY=86.4;
+const max=o=>Math.max(...o.map(x=>x[1]));
+const MAXSCORE=FACTORS.reduce((a,f)=>a+max(f.opts),0);
+const TIPS={status:'Siapkan surat keterangan kerja/kuliah atau bukti usaha (NIB, laporan pajak).',
+ sponsor:'Lengkapi surat sponsor beserta bukti hubungan dan penghasilan sponsor.',
+ income:'Lampirkan slip gaji/SPT atau bukti penghasilan sponsor 3–6 bulan.',
+ saldo:'Kumpulkan dana bertahap; sesuaikan dengan estimasi biaya dan durasi perjalanan.',
+ stabil:'Hindari setoran besar mendadak; jaga pemasukan rutin 3–6 bulan sebelum apply.',
+ ikatan:'Tunjukkan bukti ikatan: kartu keluarga, sertifikat properti, kontrak kerja/kuliah aktif.',
+ travel:'Bangun riwayat perjalanan bertahap, mulai dari negara bebas visa atau yang lebih mudah.',
+ tolak:'Pelajari alasan penolakan sebelumnya dan perbaiki sebelum mengajukan ulang.'};
+
+const $=id=>document.getElementById(id),f=$('f'),res=$('res');
+
+// ===== BANGUN FORM =====
+$('chips').innerHTML=Object.entries(DEST).map(([k,d],i)=>
+ `<label class="chip"><input type="radio" name="dest" value="${k}" ${i?'':'required'}><span><b>${d.e}</b>${d.l}</span></label>`).join('');
+$('grid').innerHTML=FACTORS.map((x,i)=>
+ `<div class="${i<2||x.hint?'':''}"><label class="l" for="${x.id}">${i+1}. ${x.label}</label>
+  <select id="${x.id}" required><option value="" disabled selected>Pilih…</option>${x.opts.map((o,j)=>`<option value="${j}">${o[0]}</option>`).join('')}</select>
+  ${x.hint?`<div class="hint">${x.hint}</div>`:''}</div>`).join('');
+
+// ===== PETA =====
+$('pins').innerHTML=Object.entries(DEST).map(([k,d])=>
+ `<g class="pin" data-k="${k}"><circle cx="${d.x}" cy="${d.y}" r="6" fill="transparent"/><circle id="p-${k}" cx="${d.x}" cy="${d.y}" r="1.7" fill="#9fb0d0"/></g>`).join('');
+$('pins').addEventListener('click',e=>{const g=e.target.closest('.pin');if(!g)return;
+ const r=f.querySelector(`input[value="${g.dataset.k}"]`);r.checked=true;r.dispatchEvent(new Event('change',{bubbles:true}))});
+
+function drawRoute(k){
+ Object.keys(DEST).forEach(j=>{const p=$('p-'+j);p.setAttribute('r',j===k?3:1.7);p.setAttribute('fill',j===k?'#fff':'#9fb0d0')});
+ const d=DEST[k];if(!d)return;
+ const mx=(OX+d.x)/2,my=Math.min(OY,d.y)-Math.hypot(d.x-OX,d.y-OY)*.28;
+ $('arc').setAttribute('d',`M${OX} ${OY}Q${mx} ${my} ${d.x} ${d.y}`);
+ const lab=$('lab');lab.textContent=d.l;lab.setAttribute('x',Math.min(Math.max(d.x,40),320));lab.setAttribute('y',d.y+(d.y>140?-7:12));
+}
+drawRoute('jepang');$('lab').textContent='';
+f.addEventListener('change',e=>{
+ if(e.target.name==='dest')drawRoute(e.target.value);
+ res.classList.add('hidden');
+});
+
+// ===== HITUNG =====
+f.addEventListener('submit',e=>{
+ e.preventDefault();
+ const key=f.dest.value,d=DEST[key];
+ const pick={},pts={};let total=0;
+ FACTORS.forEach(x=>{const o=x.opts[+$(x.id).value];pick[x.id]=o;pts[x.id]=o[1];total+=o[1]});
+ const score=Math.round(total/MAXSCORE*100);
+ let level=score>=d.high?'high':score>=d.mid?'mid':'low';
+
+ const flags=[];
+ if(pick.tolak[2]==='multi')flags.push('Pernah ditolak lebih dari 1 kali.');
+ if(pick.status[2]==='none'&&pick.sponsor[2]==='none')flags.push('Tidak ada pekerjaan maupun penanggung biaya yang jelas.');
+ else if(pick.sponsor[2]==='none')flags.push('Penanggung biaya belum jelas.');
+ if(pick.stabil[2]==='spike')flags.push('Ada lonjakan saldo mendadak pada mutasi rekening.');
+ const capped=level==='high'&&flags.length>0;
+ if(capped)level='mid';
+
+ const L={high:['Profil Tergolong Kuat',`Profil Anda tergolong kuat untuk pengajuan ke <b>${d.l}</b>. Tetap siapkan dokumen selengkapnya; keputusan akhir ada pada konsuler.`],
+  mid:['Cukup, Perlu Penguatan',`Profil Anda cukup untuk pengajuan ke <b>${d.l}</b>, namun konsuler bisa meminta dokumen tambahan. Perkuat faktor terlemah di bawah.`],
+  low:['Risiko Penolakan Tinggi',`Profil saat ini berisiko tinggi untuk <b>${d.l}</b>. Sebaiknya perkuat faktor terlemah sebelum mengajukan.`]}[level];
+ const color={high:'#22a35a',mid:'#d49a12',low:'#e0483a'}[level];
+ const student=pick.status[2]==='student';
+ const weak=FACTORS.map(x=>({x,r:pts[x.id]/max(x.opts)})).sort((a,b)=>a.r-b.r).filter(w=>w.r<.6).slice(0,3);
+
+ res.innerHTML=`
+ <p class="step">Hasil analisis · ${d.e} ${d.l}</p>
+ <div class="ringbox">
+  <div class="ring"><svg width="128" height="128" viewBox="0 0 128 128"><circle cx="64" cy="64" r="54" fill="none" stroke="var(--bar)" stroke-width="10"/>
+   <circle id="rg" cx="64" cy="64" r="54" fill="none" stroke="${color}" stroke-width="10" stroke-linecap="round" stroke-dasharray="339.3" stroke-dashoffset="339.3"/></svg>
+   <div class="n"><b id="sc">0</b><small>dari 100</small></div></div>
+  <div><span class="badge ${level}">${L[0]}</span>
+   <div class="hint" style="margin-top:8px">Ambang ${d.l}: kuat ≥ ${d.high}, cukup ≥ ${d.mid}</div></div>
+ </div>
+ <p class="desc">${L[1]}${capped?`<br><br><b>Catatan:</b> status dibatasi ke “Cukup” karena ada tanda risiko, walau skor sudah mencapai ambang tertinggi (${d.high}).`:''}${student?'<br><br>Sebagai pelajar, sponsor orang tua/wali dan surat dari kampus sangat membantu.':''}</p>
+ ${flags.length?`<h3 class="flag">Tanda risiko</h3><ul class="flag">${flags.map(t=>`<li>${t}</li>`).join('')}</ul>`:''}
+ <h3>Rincian poin per faktor</h3>
+ ${FACTORS.map(x=>{const m=max(x.opts),p=pts[x.id],r=p/m,c=r>=.7?'#22a35a':r>=.4?'#d49a12':'#e0483a';
+  return `<div class="row"><span>${x.short}</span><div class="track"><div class="fill" style="width:${r*100}%;background:${c}"></div></div><em>${p}/${m}</em></div>`}).join('')}
+ <h3>${weak.length?'Yang perlu diperkuat':'Semua faktor cukup baik'}</h3>
+ ${weak.length?`<ul>${weak.map(w=>`<li><b>${w.x.short}:</b> ${TIPS[w.x.id]}</li>`).join('')}</ul>`:'<p class="desc">Tidak ada faktor yang tergolong lemah. Pastikan dokumen lengkap dan konsisten.</p>'}
+ <p class="disc">Ini estimasi mandiri berdasarkan jawaban Anda, bukan penilaian resmi kedutaan atau jaminan hasil. Keputusan sepenuhnya di tangan konsuler dan kebijakan tiap negara dapat berubah. Cek persyaratan resmi di situs kedutaan tujuan.</p>
+ <button type="button" class="reset" id="rs">Hitung ulang profil lain</button>`;
+ res.classList.remove('hidden');
+ anim(score);
+ $('rs').onclick=()=>{f.reset();res.classList.add('hidden');drawRoute('jepang');$('lab').textContent='';window.scrollTo({top:0,behavior:'smooth'})};
+ setTimeout(()=>res.scrollIntoView({behavior:'smooth',block:'start'}),100);
+});
+
+let raf;
+function anim(end,dur=1000){cancelAnimationFrame(raf);let t0=null;const el=$('sc'),rg=$('rg');
+ const step=ts=>{t0??=ts;const p=Math.min((ts-t0)/dur,1),e=1-Math.pow(1-p,3);
+  el.textContent=Math.round(e*end);rg.setAttribute('stroke-dashoffset',339.3*(1-e*end/100));
+  if(p<1)raf=requestAnimationFrame(step)};
+ raf=requestAnimationFrame(step)}
+</script>
+</body>
+</html>
